@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>지선 업무 체크리스트</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHRleHQgeT0iMjgiIGZvbnQtc2l6ZT0iMjgiPvCfk508L3RleHQ+Cjwvc3ZnPg=="/>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F2F2F7;--card:#fff;--text:#1D1D1F;--t2:#6E6E73;--t3:#AEAEB2;
+  --line:#E5E5EA;--red:#DD1E25;--green:#34C759;--blue:#DD1E25;--danger:#FF3B30;
+  --me:#8B5CF6;--team:#F59E0B;--part:#0EA5E9;
+  --sh:0 1px 3px rgba(0,0,0,.05),0 2px 12px rgba(0,0,0,.04);
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#000;--card:#1C1C1E;--text:#fff;--t2:#AEAEB2;--t3:#636366;--line:#2C2C2E;
+    --sh:0 1px 3px rgba(0,0,0,.3),0 2px 12px rgba(0,0,0,.2);}
+}
+html,body{background:var(--bg);min-height:100vh;
+  font-family:"Pretendard",-apple-system,"Apple SD Gothic Neo",sans-serif;
+  color:var(--text);-webkit-font-smoothing:antialiased;}
+#app{max-width:980px;margin:0 auto;padding:28px 20px 60px;}
+input[type=text],input[type=url],input[type=date]{
+  width:100%;padding:11px 13px;border:none;border-radius:10px;
+  background:var(--bg);color:var(--text);font-size:14px;
+  font-family:inherit;outline:none;transition:box-shadow .15s;-webkit-appearance:none;}
+input[type=text]:focus,input[type=url]:focus,input[type=date]:focus{box-shadow:0 0 0 2.5px var(--red);}
+input[type=checkbox]{-webkit-appearance:none;appearance:none;width:20px;height:20px;
+  border-radius:50%;border:1.5px solid var(--line);background:var(--card);
+  cursor:pointer;position:relative;flex-shrink:0;transition:all .15s;}
+input[type=checkbox]:checked{background:var(--red);border-color:var(--red);}
+input[type=checkbox]:checked::after{content:"";position:absolute;left:5.5px;top:3px;
+  width:5px;height:8px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg);}
+button{font-family:inherit;cursor:pointer;}
+button:active{opacity:.72;}
+a{color:var(--blue);text-decoration:none;}
+@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--red);
+  border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+</style>
+</head>
+<body><div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useMemo} = React;
+
+/* ══════════════════════════════════
+   ★ 여기에 Supabase 정보를 입력하세요
+   ══════════════════════════════════ */
+const SUPABASE_URL = "https://rmpfvnrfhigwktdgeqdd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_YgZoTBe0OH_xecXlSoEAfg_711fzpSG";
+/* ══════════════════════════════════ */
+
+const isConfigured = !SUPABASE_URL.includes("여기에") && !SUPABASE_KEY.includes("여기에");
+const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+/* ─── utils ─── */
+function toStr(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+const HOL=new Set(["2024-01-01","2024-02-09","2024-02-10","2024-02-11","2024-02-12","2024-03-01","2024-04-10","2024-05-05","2024-05-06","2024-05-15","2024-06-06","2024-08-15","2024-09-16","2024-09-17","2024-09-18","2024-10-03","2024-10-09","2024-12-25","2025-01-01","2025-01-28","2025-01-29","2025-01-30","2025-03-01","2025-03-03","2025-05-05","2025-05-06","2025-05-15","2025-06-06","2025-08-15","2025-10-03","2025-10-05","2025-10-06","2025-10-07","2025-10-08","2025-10-09","2025-12-25","2026-01-01","2026-02-16","2026-02-17","2026-02-18","2026-02-19","2026-03-01","2026-03-02","2026-05-05","2026-05-24","2026-05-25","2026-06-06","2026-08-17","2026-09-24","2026-09-25","2026-09-26","2026-10-03","2026-10-05","2026-10-09","2026-12-25","2027-01-01","2027-02-06","2027-02-07","2027-02-08","2027-02-09","2027-03-01","2027-05-05","2027-05-13","2027-05-14","2027-06-06","2027-06-07","2027-08-15","2027-08-16","2027-10-03","2027-10-09","2027-10-14","2027-10-15","2027-10-16","2027-12-25","2027-12-26"]);
+function isBiz(s){const w=new Date(s+"T00:00:00").getDay();return w!==0&&w!==6&&!HOL.has(s);}
+function prevBiz(s){let d=new Date(s+"T00:00:00");d.setDate(d.getDate()-1);let c=toStr(d);while(!isBiz(c)){d=new Date(c+"T00:00:00");d.setDate(d.getDate()-1);c=toStr(d);}return c;}
+function addMo(y,m,n){let nm=m+n,ny=y;while(nm>11){nm-=12;ny++;}while(nm<0){nm+=12;ny--;}return{y:ny,m:nm};}
+const WD=["일","월","화","수","목","금","토"];
+function fmt(s){const d=new Date(s+"T00:00:00");return `${d.getMonth()+1}/${d.getDate()}(${WD[d.getDay()]})`;}
+function fmtLong(s){const d=new Date(s+"T00:00:00");return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일(${WD[d.getDay()]})`;}
+function fmtShort(s){const d=new Date(s+"T00:00:00");return `${d.getMonth()+1}월 ${d.getDate()}일(${WD[d.getDay()]})`;}
+function dateRange(s,e){const a=[];let c=new Date(s+"T00:00:00"),end=new Date(e+"T00:00:00");while(c<=end){a.push(toStr(c));c.setDate(c.getDate()+1);}return a;}
+
+const VAC_TYPES={
+  me:{label:"나의 휴가",color:"var(--me)",colorHex:"#8B5CF6",bg:"rgba(139,92,246,.1)"},
+  team:{label:"팀장님 휴가",color:"var(--team)",colorHex:"#F59E0B",bg:"rgba(245,158,11,.1)"},
+  part:{label:"파트장님 휴가",color:"var(--part)",colorHex:"#0EA5E9",bg:"rgba(14,165,233,.1)"},
+};
+const DURATIONS=["종일","오전반차","오후반차","오전반반차","오후반반차"];
+
+const EVENT_TYPES={
+  meeting:{label:"회의",color:"#1D1D1F",bg:"rgba(0,0,0,.06)"},
+  todo:{label:"할일",color:"#1D1D1F",bg:"rgba(0,0,0,.06)"},
+};
+
+/* ─── DB tasks ─── */
+async function dbLoad(){
+  if(!sb)return JSON.parse(localStorage.getItem("jisun_v3")||"[]");
+  const{data,error}=await sb.from("tasks").select("*").order("created_at");
+  if(error)throw error;
+  return data.map(r=>({id:r.id,name:r.name,content:r.content,url:r.url||"",deadline:r.deadline,internalDeadline:r.internal_deadline,doneInternal:r.done_internal,doneExternal:r.done_external}));
+}
+async function dbInsert(t){if(!sb)return;const{error}=await sb.from("tasks").insert({id:t.id,name:t.name,content:t.content,url:t.url||null,deadline:t.deadline,internal_deadline:t.internalDeadline,done_internal:t.doneInternal,done_external:t.doneExternal});if(error)throw error;}
+async function dbUpdate(t){if(!sb)return;const{error}=await sb.from("tasks").update({name:t.name,content:t.content,url:t.url||null,deadline:t.deadline,internal_deadline:t.internalDeadline,done_internal:t.doneInternal,done_external:t.doneExternal}).eq("id",t.id);if(error)throw error;}
+async function dbDelTask(id){if(!sb)return;const{error}=await sb.from("tasks").delete().eq("id",id);if(error)throw error;}
+
+/* ─── DB vacations ─── */
+async function dbLoadVac(){
+  if(!sb)return JSON.parse(localStorage.getItem("jisun_vac")||"[]");
+  const{data,error}=await sb.from("vacations").select("*");
+  if(error)throw error;
+  return data.map(r=>({id:r.id,date:r.date,type:r.type,duration:r.duration||"종일"}));
+}
+async function dbInsertVac(v){
+  if(!sb){const p=JSON.parse(localStorage.getItem("jisun_vac")||"[]");localStorage.setItem("jisun_vac",JSON.stringify([...p,v]));return;}
+  const{error}=await sb.from("vacations").insert({id:v.id,date:v.date,type:v.type,duration:v.duration||"종일"});if(error)throw error;
+}
+async function dbUpdateVac(v){
+  if(!sb){const p=JSON.parse(localStorage.getItem("jisun_vac")||"[]");localStorage.setItem("jisun_vac",JSON.stringify(p.map(x=>x.id===v.id?v:x)));return;}
+  const{error}=await sb.from("vacations").update({type:v.type,duration:v.duration,date:v.date}).eq("id",v.id);if(error)throw error;
+}
+async function dbDelVac(id){
+  if(!sb){const p=JSON.parse(localStorage.getItem("jisun_vac")||"[]");localStorage.setItem("jisun_vac",JSON.stringify(p.filter(v=>v.id!==id)));return;}
+  const{error}=await sb.from("vacations").delete().eq("id",id);if(error)throw error;
+}
+
+/* ─── DB events ─── */
+async function dbLoadEvents(){
+  if(!sb)return JSON.parse(localStorage.getItem("jisun_events")||"[]");
+  const{data,error}=await sb.from("events").select("*").order("date").order("time");
+  if(error)throw error;
+  return data.map(r=>({id:r.id,date:r.date,time:r.time||"",title:r.title,type:r.type,done:r.done}));
+}
+async function dbInsertEvent(e){
+  if(!sb){const p=JSON.parse(localStorage.getItem("jisun_events")||"[]");localStorage.setItem("jisun_events",JSON.stringify([...p,e]));return;}
+  const{error}=await sb.from("events").insert({id:e.id,date:e.date,time:e.time||null,title:e.title,type:e.type,done:e.done});if(error)throw error;
+}
+async function dbUpdateEvent(e){
+  if(!sb){const p=JSON.parse(localStorage.getItem("jisun_events")||"[]");localStorage.setItem("jisun_events",JSON.stringify(p.map(x=>x.id===e.id?e:x)));return;}
+  const{error}=await sb.from("events").update({date:e.date,time:e.time||null,title:e.title,type:e.type,done:e.done}).eq("id",e.id);if(error)throw error;
+}
+async function dbDelEvent(id){
+  if(!sb){const p=JSON.parse(localStorage.getItem("jisun_events")||"[]");localStorage.setItem("jisun_events",JSON.stringify(p.filter(e=>e.id!==id)));return;}
+  const{error}=await sb.from("events").delete().eq("id",id);if(error)throw error;
+}
+
+/* ─── Setup ─── */
+function SetupScreen(){
+  return(
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{background:"var(--card)",borderRadius:20,padding:"32px 28px",maxWidth:440,width:"100%",boxShadow:"var(--sh)",textAlign:"center"}}>
+        <div style={{fontSize:36,marginBottom:14}}>🔧</div>
+        <h2 style={{fontSize:18,fontWeight:600,marginBottom:8}}>Supabase 연결 필요</h2>
+        <p style={{fontSize:13,color:"var(--t2)",lineHeight:1.7,marginBottom:20}}>HTML 파일 상단의 SUPABASE_URL 과 SUPABASE_KEY 를 입력해 주세요.</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Bottom sheet ─── */
+function Sheet({show,onClose,title,children}){
+  if(!show)return null;
+  return(
+    <div onClick={e=>{if(e.target===e.currentTarget)onClose();}}
+      style={{position:"fixed",inset:0,zIndex:300,background:"rgba(0,0,0,.45)",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+      <div style={{background:"var(--card)",borderRadius:20,width:"100%",maxWidth:480,padding:"0 0 28px",
+        boxShadow:"0 20px 60px rgba(0,0,0,.2)",animation:"fadeIn .2s ease"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"22px 24px 16px"}}>
+          <span style={{fontSize:16,fontWeight:600}}>{title}</span>
+          <button onClick={onClose} style={{width:28,height:28,borderRadius:"50%",border:"none",background:"var(--bg)",color:"var(--t2)",fontSize:15,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>✕</button>
+        </div>
+        <div style={{padding:"0 24px"}}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── VacForm ─── */
+function VacForm({initial,onSave,onCancel,isEdit}){
+  const [f,setF]=useState(initial||{start:"",end:"",type:"",duration:"종일"});
+  const sf=k=>v=>setF(p=>({...p,[k]:v}));
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:12}}>
+      {!isEdit?(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><label style={{fontSize:11,color:"var(--t3)",display:"block",marginBottom:4}}>시작일</label>
+            <input type="date" value={f.start} onChange={e=>sf("start")(e.target.value)}/></div>
+          <div><label style={{fontSize:11,color:"var(--t3)",display:"block",marginBottom:4}}>종료일 <span style={{fontWeight:400}}>(연속 휴가)</span></label>
+            <input type="date" value={f.end} onChange={e=>sf("end")(e.target.value)}/></div>
+        </div>
+      ):(
+        <div><label style={{fontSize:11,color:"var(--t3)",display:"block",marginBottom:4}}>날짜</label>
+          <input type="date" value={f.start} onChange={e=>sf("start")(e.target.value)}/></div>
+      )}
+      <div>
+        <label style={{fontSize:11,color:"var(--t3)",display:"block",marginBottom:6}}>구분</label>
+        <div style={{display:"flex",gap:6}}>
+          {Object.entries(VAC_TYPES).map(([type,info])=>(
+            <button key={type} onClick={()=>sf("type")(type)}
+              style={{flex:1,padding:"8px 4px",border:"1px solid var(--line)",borderRadius:9,fontSize:12,fontWeight:500,
+                background:f.type===type?info.colorHex:"var(--bg)",
+                color:f.type===type?"#fff":"var(--t2)",transition:"all .15s"}}>
+              {info.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label style={{fontSize:11,color:"var(--t3)",display:"block",marginBottom:6}}>휴가 종류</label>
+        <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+          {DURATIONS.map(d=>(
+            <button key={d} onClick={()=>sf("duration")(d)}
+              style={{padding:"7px 13px",border:"1px solid var(--line)",borderRadius:50,fontSize:12,fontWeight:500,
+                background:f.duration===d?"var(--red)":"var(--bg)",
+                color:f.duration===d?"#fff":"var(--t2)",transition:"all .15s"}}>
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>
+      {!isEdit&&f.start&&(f.end?f.start<=f.end:true)&&f.type&&(
+        <p style={{fontSize:12,color:"var(--t3)"}}>
+          {fmtShort(f.start)}{f.end&&f.end!==f.start?" ~ "+fmtShort(f.end)+" ("+dateRange(f.start,f.end).length+"일)":""} · {f.duration}
+        </p>
+      )}
+      <div style={{display:"flex",gap:8}}>
+        <button onClick={()=>onSave(f)} style={{flex:1,padding:"10px",border:"none",borderRadius:10,background:"var(--red)",color:"#fff",fontSize:13,fontWeight:500}}>{isEdit?"수정 완료":"저장"}</button>
+        <button onClick={onCancel} style={{padding:"10px 18px",border:"1px solid var(--line)",borderRadius:10,background:"var(--bg)",color:"var(--t2)",fontSize:13}}>취소</button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── EventForm ─── */
+function EventForm({initial,onSave,onCancel}){
+  const [f,setF]=useState(initial||{date:"",time:"",title:"",type:"meeting"});
+  const sf=k=>e=>setF(p=>({...p,[k]:e.target.value}));
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:12}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        <div><label style={{fontSize:11,color:"var(--t3)",display:"block",marginBottom:4}}>날짜</label>
+          <input type="date" value={f.date} onChange={sf("date")}/></div>
+        <div><label style={{fontSize:11,color:"var(--t3)",display:"block",marginBottom:4}}>시간 <span style={{fontWeight:400,color:"var(--t3)"}}>(선택)</span></label>
+          <input type="time" value={f.time} onChange={sf("time")}
+            style={{width:"100%",padding:"11px 13px",border:"none",borderRadius:10,background:"var(--bg)",color:"var(--text)",fontSize:14,fontFamily:"inherit",outline:"none"}}/></div>
+      </div>
+      <div><label style={{fontSize:11,color:"var(--t3)",display:"block",marginBottom:4}}>제목</label>
+        <input type="text" value={f.title} placeholder="일정 내용을 입력하세요" onChange={sf("title")}/></div>
+      <div>
+        <label style={{fontSize:11,color:"var(--t3)",display:"block",marginBottom:6}}>종류</label>
+        <div style={{display:"flex",gap:7}}>
+          {Object.entries(EVENT_TYPES).map(([type,info])=>(
+            <button key={type} onClick={()=>setF(p=>({...p,type}))}
+              style={{flex:1,padding:"9px",border:"1px solid var(--line)",borderRadius:9,fontSize:13,fontWeight:500,
+                background:f.type===type?info.color:"var(--bg)",
+                color:f.type===type?"#fff":"var(--t2)",transition:"all .15s"}}>
+              {info.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{display:"flex",gap:8,marginTop:2}}>
+        <button onClick={()=>onSave(f)} style={{flex:1,padding:"10px",border:"none",borderRadius:10,background:"var(--red)",color:"#fff",fontSize:13,fontWeight:500}}>
+          {initial?.id?"수정 완료":"저장"}
+        </button>
+        <button onClick={onCancel} style={{padding:"10px 18px",border:"1px solid var(--line)",borderRadius:10,background:"var(--bg)",color:"var(--t2)",fontSize:13}}>취소</button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── MainCalendar ─── */
+function MainCalendar({year,month,todayStr,tasks,vacations,events,selDay,onDayClick,onPrev,onNext}){
+  const fd=new Date(year,month,1).getDay();
+  const dim=new Date(year,month+1,0).getDate();
+  const prevDim=new Date(year,month,0).getDate();
+  const totalCells=Math.ceil((fd+dim)/7)*7;
+  const cells=[
+    ...Array.from({length:fd},(_,i)=>({d:prevDim-fd+1+i,other:true,ym:addMo(year,month,-1)})),
+    ...Array.from({length:dim},(_,i)=>({d:i+1,other:false,ym:{y:year,m:month}})),
+    ...Array.from({length:totalCells-fd-dim},(_,i)=>({d:i+1,other:true,ym:addMo(year,month,1)})),
+  ];
+  const ds=({d,ym})=>`${ym.y}-${String(ym.m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  return(
+    <div style={{background:"var(--card)",borderRadius:16,boxShadow:"var(--sh)",overflow:"hidden",height:"100%",display:"flex",flexDirection:"column"}}>
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 18px 10px"}}>
+        <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+          <span style={{fontSize:24,fontWeight:600,letterSpacing:"-.03em",color:"var(--text)"}}>{month+1}월</span>
+          <span style={{fontSize:14,color:"var(--t3)",fontWeight:400}}>{year}년</span>
+        </div>
+        <div style={{display:"flex",gap:6}}>
+          <button onClick={onPrev} style={{width:30,height:30,borderRadius:50,border:"none",background:"var(--bg)",color:"var(--t2)",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+          <button onClick={onNext} style={{width:30,height:30,borderRadius:50,border:"none",background:"var(--bg)",color:"var(--t2)",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+        </div>
+      </div>
+      {/* Weekdays */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",padding:"0 10px 3px"}}>
+        {WD.map((w,i)=><div key={w} style={{textAlign:"center",fontSize:10,fontWeight:500,paddingBottom:4,color:i===0?"var(--danger)":i===6?"#4B7BEC":"var(--t3)"}}>{w}</div>)}
+      </div>
+      {/* Days */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",padding:"0 10px 14px",gap:"2px 0",flex:1}}>
+        {cells.map((cell,i)=>{
+          const s=ds(cell);
+          const isT=s===todayStr,isSel=s===selDay;
+          const dow=new Date(cell.ym.y,cell.ym.m,cell.d).getDay();
+          const isHol=HOL.has(s);
+          const hasI=!cell.other&&tasks.some(t=>t.internalDeadline===s&&!t.doneInternal);
+          const hasE=!cell.other&&tasks.some(t=>t.deadline===s&&!t.doneExternal);
+          const hadI=!cell.other&&tasks.some(t=>t.internalDeadline===s&&t.doneInternal);
+          const hadE=!cell.other&&tasks.some(t=>t.deadline===s&&t.doneExternal);
+          const dayVacs=!cell.other?vacations.filter(v=>v.date===s):[];
+          const vTypes=[...new Set(dayVacs.map(v=>v.type))];
+          const vacBg=vTypes.length>0?(VAC_TYPES[vTypes[0]]?.bg||"transparent"):"transparent";
+          return(
+            <div key={i} onClick={()=>onDayClick(s)}
+              style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"3px 2px",
+                cursor:"pointer",borderRadius:9,
+                background:isSel?"rgba(0,0,0,.07)":vacBg,transition:"background .1s",
+                opacity:cell.other?.4:1}}>
+              <div style={{width:30,height:30,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:3,
+                background:isT?"var(--red)":"transparent",fontSize:13,fontWeight:isT?600:400,
+                color:isT?"#fff":(isHol||dow===0)?"var(--danger)":dow===6?"#4B7BEC":"var(--text)"}}>
+                {cell.d}
+              </div>
+              <div style={{display:"flex",gap:2,minHeight:6,alignItems:"center"}}>
+                {(hasI||hadI)&&<span style={{width:4,height:4,borderRadius:"50%",background:hasI?"var(--green)":"var(--line)",display:"inline-block"}}/>}
+                {(hasE||hadE)&&<span style={{width:4,height:4,borderRadius:"50%",background:hasE?"var(--blue)":"var(--line)",display:"inline-block"}}/>}
+                {vTypes.map(type=><span key={type} style={{width:4,height:4,borderRadius:"50%",background:VAC_TYPES[type]?.colorHex||"var(--t3)",display:"inline-block"}}/>)}
+                {!cell.other&&events.filter(e=>e.date===s).map(e=><span key={e.id} style={{width:4,height:4,borderRadius:"50%",background:EVENT_TYPES[e.type]?.color||"var(--t3)",display:"inline-block"}}/>).slice(0,1)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── MiniCalendar ─── */
+function MiniCalendar({year,month,todayStr,tasks,vacations,events,selDay,onDayClick}){
+  const fd=new Date(year,month,1).getDay();
+  const dim=new Date(year,month+1,0).getDate();
+  const prevDim=new Date(year,month,0).getDate();
+  const totalCells=Math.ceil((fd+dim)/7)*7;
+  const cells=[
+    ...Array.from({length:fd},(_,i)=>({d:prevDim-fd+1+i,other:true,ym:addMo(year,month,-1)})),
+    ...Array.from({length:dim},(_,i)=>({d:i+1,other:false,ym:{y:year,m:month}})),
+    ...Array.from({length:totalCells-fd-dim},(_,i)=>({d:i+1,other:true,ym:addMo(year,month,1)})),
+  ];
+  const ds=({d,ym})=>`${ym.y}-${String(ym.m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  return(
+    <div style={{background:"var(--card)",borderRadius:16,boxShadow:"var(--sh)",overflow:"hidden"}}>
+      <div style={{padding:"13px 12px 5px",display:"flex",alignItems:"baseline",gap:5}}>
+        <span style={{fontSize:14,fontWeight:500,color:"var(--t2)"}}>{month+1}월</span>
+        <span style={{fontSize:11,color:"var(--t3)"}}>{year}년</span>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",padding:"0 6px 2px"}}>
+        {WD.map((w,i)=><div key={w} style={{textAlign:"center",fontSize:9,fontWeight:500,paddingBottom:2,color:i===0?"var(--danger)":i===6?"#4B7BEC":"var(--t3)"}}>{w}</div>)}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",padding:"0 6px 10px"}}>
+        {cells.map((cell,i)=>{
+          const s=ds(cell);
+          const isT=s===todayStr,isSel=s===selDay;
+          const dow=new Date(cell.ym.y,cell.ym.m,cell.d).getDay();
+          const isHol=HOL.has(s);
+          const hasTask=!cell.other&&(tasks.some(t=>t.internalDeadline===s||t.deadline===s));
+          const dayVacs=!cell.other?vacations.filter(v=>v.date===s):[];
+          const vTypes=[...new Set(dayVacs.map(v=>v.type))];
+          const vacBg=vTypes.length>0?(VAC_TYPES[vTypes[0]]?.bg||""):"";
+          return(
+            <div key={i} onClick={()=>onDayClick(s)}
+              style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"1px",
+                cursor:"pointer",borderRadius:6,background:isSel?"rgba(0,0,0,.07)":vacBg,
+                opacity:cell.other?.4:1}}>
+              <div style={{width:22,height:22,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",
+                background:isT?"var(--red)":"transparent",fontSize:11,fontWeight:isT?600:400,
+                color:isT?"#fff":(isHol||dow===0)?"var(--danger)":dow===6?"#4B7BEC":"var(--t2)"}}>
+                {cell.d}
+              </div>
+              {hasTask&&<div style={{width:3,height:3,borderRadius:"50%",background:"var(--green)",marginTop:1}}/>}
+              {!cell.other&&events.some(e=>e.date===s)&&<div style={{width:3,height:3,borderRadius:"50%",background:"#1D1D1F",marginTop:hasTask?0:1}}/>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── UpcomingCard ─── */
+function UpcomingCard({tasks,events,todayStr}){
+  const now=new Date(todayStr+"T00:00:00");
+  const items=[];
+  tasks.forEach(t=>{
+    if(!t.urgent&&!t.doneInternal){
+      const d=Math.ceil((new Date(t.internalDeadline+"T00:00:00")-now)/864e5);
+      if(d>=0&&d<=14) items.push({...t,type:"internal",diff:d});
+    }
+    if(!t.doneExternal){
+      const d=Math.ceil((new Date(t.deadline+"T00:00:00")-now)/864e5);
+      if(d>=0&&d<=14) items.push({...t,type:t.urgent?"urgent":"external",diff:d});
+    }
+  });
+  items.sort((a,b)=>a.diff-b.diff);
+  const seen=new Set();
+  const uniq=items.filter(t=>{const k=t.id+t.type;if(seen.has(k))return false;seen.add(k);return true;});
+  return(
+    <div style={{background:"var(--card)",borderRadius:16,boxShadow:"var(--sh)",overflow:"hidden",display:"flex",flexDirection:"column",height:"184px"}}>
+      <div style={{padding:"13px 14px 10px",fontSize:12,fontWeight:500,color:"var(--t2)",borderBottom:"1px solid var(--line)",flexShrink:0}}>다가오는 마감</div>
+      <div style={{flex:1,overflowY:"auto",minHeight:0}}>
+        {uniq.length===0?(
+          <div style={{padding:"18px 14px",fontSize:12,color:"var(--t3)",textAlign:"center"}}>마감 임박 업무 없음</div>
+        ):uniq.map((t,i)=>{
+          const isI=t.type==="internal";
+          const isUrgentType=t.type==="urgent";
+          const col=isUrgentType?"var(--red)":isI?"var(--green)":"var(--blue)";
+          const typeLabel=isUrgentType?"급건":isI?"내부":"전체";
+          const dateStr=isI?t.internalDeadline:t.deadline;
+          const urgent=t.diff<=1;
+          return(
+            <div key={i} style={{padding:"9px 14px",borderBottom:i<uniq.length-1?"1px solid var(--line)":"none"}}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+                <span style={{width:5,height:5,borderRadius:"50%",background:col,display:"inline-block",flexShrink:0}}/>
+                <span style={{fontSize:12,fontWeight:500,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.content}</span>
+                <span style={{fontSize:11,fontWeight:600,color:urgent?"var(--danger)":"var(--t3)",flexShrink:0,background:urgent?"rgba(255,59,48,.1)":"transparent",padding:urgent?"1px 6px":"0",borderRadius:20}}>
+                  D-{t.diff}
+                </span>
+              </div>
+              <div style={{fontSize:10,color:"var(--t3)",paddingLeft:11}}>{t.name} · {typeLabel} {fmt(dateStr)}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── RightPanel ─── */
+function RightPanel({selDay,tasks,vacations,events,todayStr,onDelTask,onEditTask,onToggle,onDelVac,onAddEvent,onEditEvent,onToggleEvent,onDelEvent,onDayNav}){
+  const selTasks=[
+    ...tasks.filter(t=>t.internalDeadline===selDay&&!t.urgent).map(t=>({...t,mt:"internal"})),
+    ...tasks.filter(t=>t.deadline===selDay).map(t=>({...t,mt:"external"})),
+  ].sort((a,b)=>{
+    const aDone=a.mt==="internal"?a.doneInternal:a.doneExternal;
+    const bDone=b.mt==="internal"?b.doneInternal:b.doneExternal;
+    return aDone===bDone?0:aDone?1:-1;
+  });
+  const selVacs=vacations.filter(v=>v.date===selDay);
+
+  return(
+    <div style={{background:"var(--card)",borderRadius:16,boxShadow:"var(--sh)",display:"flex",flexDirection:"column",overflow:"hidden",height:"100%"}}>
+      <div style={{padding:"12px 14px 10px",flexShrink:0,borderBottom:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <button onClick={()=>{
+          const d=new Date(selDay+"T00:00:00");d.setDate(d.getDate()-1);
+          onDayNav(toStr(d));
+        }} style={{width:28,height:28,borderRadius:50,border:"none",background:"var(--bg)",color:"var(--t2)",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}>‹</button>
+        <span style={{fontSize:14,fontWeight:600}}>{fmtShort(selDay)}</span>
+        <button onClick={()=>{
+          const d=new Date(selDay+"T00:00:00");d.setDate(d.getDate()+1);
+          onDayNav(toStr(d));
+        }} style={{width:28,height:28,borderRadius:50,border:"none",background:"var(--bg)",color:"var(--t2)",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}>›</button>
+      </div>
+      <div style={{flex:1,padding:"12px 14px",overflowY:"auto",minHeight:0}}>
+        {selVacs.length>0&&(
+          <div style={{marginBottom:10}}>
+            {selVacs.map(v=>{
+              const info=VAC_TYPES[v.type]||{label:v.type,colorHex:"#999",bg:"var(--bg)"};
+              return(
+                <div key={v.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:info.bg,borderRadius:9,padding:"9px 12px",marginBottom:6}}>
+                  <div style={{display:"flex",alignItems:"center",gap:7}}>
+                    <span style={{width:6,height:6,borderRadius:"50%",background:info.colorHex,display:"inline-block",flexShrink:0}}/>
+                    <span style={{fontSize:13,fontWeight:500}}>{info.label}</span>
+                    {(v.duration&&v.duration!=="종일")&&<span style={{fontSize:11,color:"var(--t2)",background:"var(--card)",padding:"1px 7px",borderRadius:20,border:"1px solid var(--line)"}}>{v.duration}</span>}
+                    {(!v.duration||v.duration==="종일")&&<span style={{fontSize:11,color:"var(--t3)"}}>종일</span>}
+                  </div>
+                  <button onClick={()=>onDelVac(v.id)} style={{background:"rgba(255,59,48,.1)",border:"none",borderRadius:6,padding:"4px 10px",fontSize:11,color:"var(--danger)",fontWeight:500,cursor:"pointer"}}>삭제</button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {/* Events for selected day */}
+        {selDay&&(()=>{
+          const dayEvents=events.filter(e=>e.date===selDay).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+          return dayEvents.map((e,i)=>{
+            const info=EVENT_TYPES[e.type]||{label:e.type,color:"#999",bg:"var(--bg)"};
+            return(
+              <div key={e.id} style={{background:info.bg,borderRadius:9,padding:"10px 12px",marginBottom:7,opacity:e.done?.5:1}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
+                  <span style={{width:6,height:6,borderRadius:"50%",background:info.color,display:"inline-block",flexShrink:0}}/>
+                  <span style={{fontSize:11,fontWeight:500,color:info.color}}>{info.label}</span>
+                  {e.time&&<span style={{fontSize:11,color:"var(--t3)",marginLeft:"auto"}}>{e.time}</span>}
+                </div>
+                <p style={{fontSize:13,fontWeight:500,marginBottom:8,textDecoration:e.done?"line-through":"none"}}>{e.title}</p>
+                <div style={{display:"flex",gap:6}}>
+                  <label style={{display:"flex",flex:1,alignItems:"center",gap:7,cursor:"pointer",background:"var(--card)",borderRadius:8,padding:"6px 10px"}}>
+                    <input type="checkbox" checked={e.done} onChange={()=>onToggleEvent(e.id)}/>
+                    <span style={{fontSize:12,color:"var(--t2)"}}>완료</span>
+                  </label>
+                  {e.url&&<a href={e.url} target="_blank" rel="noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"center",background:"var(--card)",borderRadius:8,padding:"6px 11px",fontSize:12}}>🔗</a>}
+                  <button onClick={()=>onEditEvent(e)} style={{background:"var(--card)",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,color:"var(--t2)",cursor:"pointer"}}>수정</button>
+                  <button onClick={()=>onDelEvent(e.id)} style={{background:"rgba(255,59,48,.09)",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,color:"var(--danger)",fontWeight:500,cursor:"pointer"}}>삭제</button>
+                </div>
+              </div>
+            );
+          });
+        })()}
+        {selTasks.length===0&&selVacs.length===0&&events.filter(e=>e.date===selDay).length===0?(
+          <div style={{textAlign:"center",padding:"24px 0",color:"var(--t3)"}}>
+            <div style={{fontSize:24,marginBottom:8,opacity:.3}}>📋</div>
+            <p style={{fontSize:12,marginBottom:12}}>등록된 업무가 없습니다</p>
+            <button onClick={()=>onEditTask(null)} style={{background:"var(--red)",color:"#fff",border:"none",borderRadius:50,padding:"8px 18px",fontSize:12,fontWeight:500,cursor:"pointer"}}>업무 추가</button>
+          </div>
+        ):selTasks.map((t,i)=>{
+          const isI=t.mt==="internal",isDone=isI?t.doneInternal:t.doneExternal;
+          const isUrgent=t.urgent&&isI;
+          const col=isUrgent?"var(--red)":isI?"var(--green)":"var(--blue)";
+          const labelText=isUrgent?"급건 마감":isI?"내부 마감":"전체 마감";
+          return(
+            <div key={i} style={{background:"var(--bg)",borderRadius:10,padding:"11px 13px",marginBottom:8,opacity:isDone?.55:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:5}}>
+                <span style={{width:5,height:5,borderRadius:"50%",background:isDone?"var(--t3)":col,display:"inline-block",flexShrink:0}}/>
+                <span style={{fontSize:11,fontWeight:500,color:isDone?"var(--t3)":col}}>{labelText}</span>
+                <span style={{fontSize:11,color:"var(--t3)",marginLeft:"auto"}}>{t.name}</span>
+              </div>
+              <p style={{fontSize:13,fontWeight:500,marginBottom:9,textDecoration:isDone?"line-through":"none"}}>{t.content}</p>
+              <div style={{display:"flex",gap:6}}>
+                <label style={{display:"flex",flex:1,alignItems:"center",gap:7,cursor:"pointer",background:"var(--card)",borderRadius:8,padding:"7px 10px"}}>
+                  <input type="checkbox" checked={isI?t.doneInternal:t.doneExternal} onChange={()=>onToggle(t.id,isI?"doneInternal":"doneExternal")}/>
+                  <span style={{fontSize:12,color:"var(--t2)"}}>완료</span>
+                </label>
+                {t.url&&<a href={t.url} target="_blank" rel="noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"center",background:"var(--card)",borderRadius:8,padding:"7px 11px",fontSize:12}}>🔗</a>}
+                <button onClick={()=>onEditTask(t)} style={{background:"var(--card)",border:"none",borderRadius:8,padding:"7px 11px",fontSize:12,color:"var(--t2)",cursor:"pointer"}}>수정</button>
+                <button onClick={()=>onDelTask(t.id)} style={{background:"rgba(255,59,48,.09)",border:"none",borderRadius:8,padding:"7px 11px",fontSize:12,color:"var(--danger)",fontWeight:500,cursor:"pointer"}}>삭제</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── TaskRow ─── */
+function TaskRow({task,onTI,onTE,onEdit,onDel,saving}){
+  const [open,setOpen]=useState(false);
+  const dl=Math.ceil((new Date(task.internalDeadline+"T00:00:00")-new Date())/(864e5));
+  const urgent=!task.doneInternal&&dl>=0&&dl<=1;
+  return(
+    <div style={{borderBottom:"1px solid var(--line)",opacity:saving?.5:1,transition:"opacity .2s"}}>
+      <div onClick={()=>setOpen(o=>!o)} style={{display:"flex",alignItems:"center",gap:11,padding:"13px 0",cursor:"pointer"}}>
+        <input type="checkbox" checked={task.doneExternal} onChange={e=>{e.stopPropagation();onTE();}}/>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
+            <span style={{fontSize:14,fontWeight:500,textDecoration:task.doneExternal?"line-through":"none",opacity:task.doneExternal?.45:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{task.content}</span>
+            {urgent&&<span style={{fontSize:10,fontWeight:500,color:"var(--danger)",background:"rgba(255,59,48,.1)",padding:"1px 6px",borderRadius:20,flexShrink:0}}>{dl===0?"오늘":"내일"}마감</span>}
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap"}}>
+            <span style={{fontSize:11,color:"var(--t3)"}}>{task.name}</span>
+            {!task.urgent&&<><span style={{fontSize:11,color:"var(--t3)"}}>·</span>
+            <span style={{fontSize:11,color:task.doneInternal?"var(--t3)":"var(--green)",textDecoration:task.doneInternal?"line-through":"none"}}>내부 {fmt(task.internalDeadline)}</span>
+            <span style={{fontSize:11,color:task.doneExternal?"var(--t3)":"var(--blue)",textDecoration:task.doneExternal?"line-through":"none"}}>전체 {fmt(task.deadline)}</span></>}
+          </div>
+        </div>
+        <div style={{display:"flex",gap:4,flexShrink:0}}>
+          <button onClick={e=>{e.stopPropagation();onDel();}} style={{padding:"5px 10px",border:"none",borderRadius:7,background:"rgba(255,59,48,.09)",color:"var(--danger)",fontSize:12,fontWeight:500,cursor:"pointer"}}>삭제</button>
+          <span style={{color:"var(--t3)",fontSize:12,transform:open?"rotate(180deg)":"none",transition:"transform .2s",display:"flex",alignItems:"center",paddingLeft:2}}>▾</span>
+        </div>
+      </div>
+      {open&&(
+        <div style={{padding:"0 0 14px 31px",display:"flex",flexDirection:"column",gap:9}}>
+          {task.urgent?(
+            <label style={{display:"flex",alignItems:"center",gap:9,cursor:"pointer"}}>
+              <input type="checkbox" checked={task.doneExternal} onChange={onTE}/>
+              <div>
+                <div style={{fontSize:12,fontWeight:500,opacity:task.doneExternal?.45:1,textDecoration:task.doneExternal?"line-through":"none"}}>급건 마감 완료</div>
+                <div style={{fontSize:11,color:"var(--red)",marginTop:1}}>{fmtLong(task.deadline)}</div>
+              </div>
+            </label>
+          ):(
+            <>
+              <label style={{display:"flex",alignItems:"center",gap:9,cursor:"pointer"}}>
+                <input type="checkbox" checked={task.doneInternal} onChange={onTI}/>
+                <div>
+                  <div style={{fontSize:12,fontWeight:500,opacity:task.doneInternal?.45:1,textDecoration:task.doneInternal?"line-through":"none"}}>내부 마감 완료</div>
+                  <div style={{fontSize:11,color:"var(--green)",marginTop:1}}>{fmtLong(task.internalDeadline)}</div>
+                </div>
+              </label>
+              <label style={{display:"flex",alignItems:"center",gap:9,cursor:"pointer"}}>
+                <input type="checkbox" checked={task.doneExternal} onChange={onTE}/>
+                <div>
+                  <div style={{fontSize:12,fontWeight:500,opacity:task.doneExternal?.45:1,textDecoration:task.doneExternal?"line-through":"none"}}>전체 마감 완료</div>
+                  <div style={{fontSize:11,color:"var(--blue)",marginTop:1}}>{fmtLong(task.deadline)}</div>
+                </div>
+              </label>
+            </>
+          )}
+          {task.url&&<a href={task.url} target="_blank" rel="noreferrer" style={{fontSize:12,display:"flex",alignItems:"center",gap:4}}>🔗 업무 링크</a>}
+          <button onClick={onEdit} style={{alignSelf:"flex-start",padding:"7px 16px",border:"none",borderRadius:8,background:"var(--bg)",color:"var(--t2)",fontSize:12,fontWeight:500,cursor:"pointer"}}>수정</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── VacRow ─── */
+function VacRow({vac,onSave,onDel}){
+  const [editing,setEditing]=useState(false);
+  const info=VAC_TYPES[vac.type]||{label:vac.type,colorHex:"#999",bg:"var(--bg)"};
+  if(editing) return(
+    <div style={{padding:"12px 0",borderBottom:"1px solid var(--line)"}}>
+      <VacForm initial={{start:vac.date,end:"",type:vac.type,duration:vac.duration||"종일"}} isEdit={true}
+        onSave={f=>{onSave({...vac,date:f.start||vac.date,type:f.type,duration:f.duration});setEditing(false);}}
+        onCancel={()=>setEditing(false)}/>
+    </div>
+  );
+  return(
+    <div style={{display:"flex",alignItems:"center",padding:"12px 0",borderBottom:"1px solid var(--line)",gap:10}}>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:14,color:"var(--text)",marginBottom:3}}>{fmtLong(vac.date)}</div>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <span style={{fontSize:11,fontWeight:500,color:info.colorHex,background:VAC_TYPES[vac.type]?.bg||"var(--bg)",padding:"2px 8px",borderRadius:20}}>{info.label}</span>
+          {(vac.duration&&vac.duration!=="종일")&&<span style={{fontSize:11,fontWeight:500,color:"var(--t2)",background:"var(--bg)",padding:"2px 8px",borderRadius:20,border:"1px solid var(--line)"}}>{vac.duration}</span>}
+          {(!vac.duration||vac.duration==="종일")&&<span style={{fontSize:11,color:"var(--t3)"}}>종일</span>}
+        </div>
+      </div>
+      <div style={{display:"flex",gap:6,flexShrink:0}}>
+        <button onClick={()=>setEditing(true)} style={{padding:"5px 12px",border:"1px solid var(--line)",borderRadius:7,background:"var(--bg)",color:"var(--t2)",fontSize:12,fontWeight:500,cursor:"pointer"}}>수정</button>
+        <button onClick={onDel} style={{padding:"5px 12px",border:"none",borderRadius:7,background:"rgba(255,59,48,.09)",color:"var(--danger)",fontSize:12,fontWeight:500,cursor:"pointer"}}>삭제</button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── App ─── */
+function App(){
+  if(!isConfigured) return <SetupScreen/>;
+  const today=new Date(), todayStr=toStr(today);
+  const [baseYear,setBaseYear]=useState(today.getFullYear());
+  const [baseMonth,setBaseMonth]=useState(today.getMonth());
+  const [tasks,setTasks]=useState([]);
+  const [vacations,setVacations]=useState([]);
+  const [events,setEvents]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [savingId,setSavingId]=useState(null);
+  const [tab,setTab]=useState("calendar");
+  const [selDay,setSelDay]=useState(toStr(new Date()));
+  const [taskSheet,setTaskSheet]=useState(false);
+  const [editId,setEditId]=useState(null);
+  const [form,setForm]=useState({name:"",content:"",url:"",deadline:""});
+  const [err,setErr]=useState("");
+  const [vacForm,setVacForm]=useState(false);
+  const [eventSheet,setEventSheet]=useState(false);
+  const [eventEditData,setEventEditData]=useState(null);
+
+  useEffect(()=>{
+    Promise.all([dbLoad(),dbLoadVac(),dbLoadEvents()])
+      .then(([t,v,ev])=>{setTasks(t);setVacations(v);setEvents(ev);setLoading(false);})
+      .catch(e=>{console.error(e);setLoading(false);});
+  },[]);
+
+  const sf=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
+  const openAdd=()=>{setForm({name:"",content:"",url:"",deadline:"",isUrgent:false});setEditId(null);setTaskSheet(true);setErr("");};
+  const openEdit=t=>{setForm({name:t.name,content:t.content,url:t.url||"",deadline:t.deadline,isUrgent:false});setEditId(t.id);setTaskSheet(true);setErr("");};
+
+  const saveTask=async()=>{
+    if(!form.name.trim()||!form.content.trim()||!form.deadline){setErr("이름, 업무 내용, 마감일은 필수예요");return;}
+    const internal=form.isUrgent?form.deadline:prevBiz(form.deadline);
+    try{
+      if(editId){
+        const updated={id:editId,...form,internalDeadline:internal,doneInternal:tasks.find(t=>t.id===editId)?.doneInternal||false,doneExternal:tasks.find(t=>t.id===editId)?.doneExternal||false};
+        setSavingId(editId);await dbUpdate(updated);setTasks(p=>p.map(t=>t.id===editId?updated:t));
+      }else{
+        const t={id:Date.now().toString(),...form,internalDeadline:internal,doneInternal:false,doneExternal:false,urgent:!!form.isUrgent};
+        await dbInsert(t);setTasks(p=>[...p,t]);
+      }
+      setTaskSheet(false);setEditId(null);setErr("");
+    }catch(e){setErr("저장 실패: "+e.message);}
+    finally{setSavingId(null);}
+  };
+
+  const tog=async(id,k)=>{
+    const task=tasks.find(t=>t.id===id);if(!task)return;
+    const updated={...task,[k]:!task[k]};
+    setTasks(p=>p.map(t=>t.id===id?updated:t));setSavingId(id);
+    try{await dbUpdate(updated);}catch(e){setTasks(p=>p.map(t=>t.id===id?task:t));alert("저장 실패");}
+    finally{setSavingId(null);}
+  };
+
+  const delTask=async id=>{
+    if(id===null){setSelDay(null);return;}
+    if(!confirm("업무를 삭제할까요?"))return;
+    const prev=tasks;setTasks(p=>p.filter(t=>t.id!==id));
+    try{await dbDelTask(id);}catch(e){setTasks(prev);alert("삭제 실패");}
+  };
+
+  const openAddEvent=(date)=>{setEventEditData({date:date||"",time:"",title:"",type:"meeting"});setEventSheet(true);};
+  const openEditEvent=(e)=>{setEventEditData({...e});setEventSheet(true);};
+
+  const saveEvent=async(f)=>{
+    if(!f.title.trim()||!f.date)return;
+    if(f.id){
+      const updated={...f};
+      setEvents(p=>p.map(e=>e.id===f.id?updated:e));
+      try{await dbUpdateEvent(updated);}catch(e){alert("저장 실패");}
+    }else{
+      const e={id:Date.now().toString(),...f,done:false};
+      setEvents(p=>[...p,e]);
+      try{await dbInsertEvent(e);}catch(err){alert("저장 실패");}
+    }
+    setEventSheet(false);setEventEditData(null);
+  };
+
+  const togEvent=async(id)=>{
+    const ev=events.find(e=>e.id===id);if(!ev)return;
+    const updated={...ev,done:!ev.done};
+    setEvents(p=>p.map(e=>e.id===id?updated:e));
+    try{await dbUpdateEvent(updated);}catch(e){alert("저장 실패");}
+  };
+
+  const delEvent=async id=>{
+    if(!confirm("일정을 삭제할까요?"))return;
+    setEvents(p=>p.filter(e=>e.id!==id));
+    try{await dbDelEvent(id);}catch(e){alert("삭제 실패");}
+  };
+
+  const saveVac=async(f)=>{
+    if(!f.start||!f.type)return;
+    const end=f.end||f.start;
+    const dates=dateRange(f.start,end);
+    const toAdd=dates.filter(d=>!vacations.some(v=>v.date===d&&v.type===f.type));
+    const newVacs=toAdd.map(d=>({id:Date.now().toString()+Math.random().toString(36).slice(2),date:d,type:f.type,duration:f.duration||"종일"}));
+    setVacations(p=>[...p,...newVacs]);setVacForm(false);
+    try{for(const v of newVacs)await dbInsertVac(v);}catch(e){alert("저장 실패");}
+  };
+  const updateVac=async updated=>{setVacations(p=>p.map(v=>v.id===updated.id?updated:v));try{await dbUpdateVac(updated);}catch(e){alert("수정 실패");}};
+  const delVac=async id=>{const prev=vacations;setVacations(p=>p.filter(v=>v.id!==id));try{await dbDelVac(id);}catch(e){setVacations(prev);alert("삭제 실패");}};
+
+  const next=addMo(baseYear,baseMonth,1);
+  const prevM=()=>{const p=addMo(baseYear,baseMonth,-1);setBaseYear(p.y);setBaseMonth(p.m);setSelDay(null);};
+  const nextM=()=>{const p=addMo(baseYear,baseMonth,1);setBaseYear(p.y);setBaseMonth(p.m);setSelDay(null);};
+
+  const done=tasks.filter(t=>t.doneExternal).length;
+  const pct=tasks.length?Math.round(done/tasks.length*100):0;
+  const vacList=Object.entries(VAC_TYPES).map(([type,info])=>({type,info,vacs:vacations.filter(v=>v.type===type).sort((a,b)=>a.date.localeCompare(b.date))})).filter(g=>g.vacs.length>0);
+
+  if(loading)return(
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:14}}>
+      <div className="spinner"/><p style={{fontSize:13,color:"var(--t3)"}}>불러오는 중...</p>
+    </div>
+  );
+
+  return(
+    <div>
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16}}>
+        <div>
+          <p style={{fontSize:11,color:"var(--t3)",marginBottom:4,letterSpacing:".02em"}}>웹디자인팀</p>
+          <h1 style={{fontSize:22,fontWeight:600,letterSpacing:"-.03em",lineHeight:1.2}}>지선 업무 체크리스트</h1>
+        </div>
+        <div style={{display:"flex",gap:7,marginTop:4,flexShrink:0}}>
+          <button onClick={()=>{setEventEditData({date:"",time:"",title:"",type:"meeting"});setEventSheet(true);}} style={{display:"flex",alignItems:"center",gap:5,fontSize:13,fontWeight:500,padding:"9px 15px",border:"1px solid var(--line)",borderRadius:50,background:"var(--card)",color:"var(--t2)",boxShadow:"var(--sh)"}}>
+            📅 일정 추가
+          </button>
+          <button onClick={()=>setVacForm(true)} style={{display:"flex",alignItems:"center",gap:5,fontSize:13,fontWeight:500,padding:"9px 15px",border:"1px solid var(--line)",borderRadius:50,background:"var(--card)",color:"var(--t2)",boxShadow:"var(--sh)"}}>
+            ☀️ 휴가 추가
+          </button>
+          <button onClick={()=>{
+            const td=toStr(new Date());
+            setForm({name:"",content:"",url:"",deadline:td,isUrgent:true});
+            setEditId(null);setTaskSheet(true);setErr("");
+          }} style={{display:"flex",alignItems:"center",gap:5,fontSize:13,fontWeight:500,padding:"9px 15px",border:"1px solid var(--line)",borderRadius:50,background:"var(--card)",color:"var(--text)",boxShadow:"var(--sh)"}}>
+            ⚡ 급건 추가
+          </button>
+          <button onClick={openAdd} style={{display:"flex",alignItems:"center",gap:5,fontSize:13,fontWeight:500,padding:"9px 16px",border:"none",borderRadius:50,background:"var(--red)",color:"#fff",boxShadow:"0 2px 10px rgba(221,30,37,.3)"}}>
+            + 업무 추가
+          </button>
+        </div>
+      </div>
+
+      {/* Vacation form */}
+      {/* Tabs */}
+      <div style={{display:"flex",background:"var(--card)",borderRadius:50,padding:3,boxShadow:"var(--sh)",marginBottom:14,width:"fit-content"}}>
+        {[["calendar","캘린더"],["list","업무 목록"],["event","일정 목록"],["vac","휴가 목록"]].map(([k,l])=>(
+          <button key={k} onClick={()=>setTab(k)} style={{padding:"8px 20px",border:"none",borderRadius:50,fontSize:13,fontWeight:500,transition:"all .2s",background:tab===k?"var(--red)":"transparent",color:tab===k?"#fff":"var(--t3)"}}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {/* Calendar bento */}
+      {tab==="calendar"&&(
+        <>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gridTemplateRows:"auto auto",gap:10,alignItems:"start"}}>
+            {/* Main calendar */}
+            <div style={{gridColumn:"1/3",gridRow:"1/2"}}>
+              <MainCalendar year={baseYear} month={baseMonth} todayStr={todayStr} tasks={tasks} vacations={vacations} events={events} selDay={selDay}
+                onDayClick={s=>setSelDay(s)} onPrev={prevM} onNext={nextM}/>
+            </div>
+            {/* Right panel */}
+            <div style={{gridColumn:"3/4",gridRow:"1/3",display:"flex",flexDirection:"column",height:"564px",overflow:"hidden"}}>
+              <RightPanel selDay={selDay} tasks={tasks} vacations={vacations} events={events} todayStr={todayStr}
+                onDelTask={delTask} onEditTask={t=>{if(t)openEdit(t);else openAdd();}} onToggle={tog} onDelVac={delVac}
+                onAddEvent={openAddEvent} onEditEvent={openEditEvent} onToggleEvent={togEvent} onDelEvent={delEvent}
+                onDayNav={s=>setSelDay(s)}/>
+            </div>
+            {/* Mini next month */}
+            <div style={{gridColumn:"1/2",gridRow:"2/3",display:"flex",flexDirection:"column"}}>
+              <MiniCalendar year={next.y} month={next.m} todayStr={todayStr} tasks={tasks} vacations={vacations} events={events} selDay={selDay} onDayClick={s=>setSelDay(s)}/>
+            </div>
+            {/* Upcoming */}
+            <div style={{gridColumn:"2/3",gridRow:"2/3",display:"flex",flexDirection:"column"}}>
+              <UpcomingCard tasks={tasks} events={events} todayStr={todayStr}/>
+            </div>
+          </div>
+          {/* Legend */}
+          <div style={{display:"flex",gap:12,padding:"10px 4px",flexWrap:"wrap",marginTop:4}}>
+            {[["var(--green)","내부 마감"],["var(--red)","전체 마감"],...Object.values(VAC_TYPES).map(v=>[v.colorHex,v.label]),...Object.entries(EVENT_TYPES).filter(([k])=>k!=="urgent").map(([,v])=>[v.color,v.label])].map(([c,l])=>(
+              <div key={l} style={{display:"flex",alignItems:"center",gap:4,fontSize:10,color:"var(--t3)"}}>
+                <span style={{width:6,height:6,borderRadius:"50%",background:c,display:"inline-block"}}/>{l}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* 업무 목록 */}
+      {tab==="list"&&(
+        <div style={{background:"var(--card)",borderRadius:16,boxShadow:"var(--sh)",padding:"0 18px"}}>
+          {tasks.length===0
+            ?<div style={{padding:"48px 0",textAlign:"center"}}>
+              <div style={{fontSize:36,marginBottom:10}}>📋</div>
+              <p style={{fontSize:14,color:"var(--t3)",marginBottom:14}}>업무가 없습니다</p>
+              <button onClick={openAdd} style={{background:"var(--red)",color:"#fff",border:"none",borderRadius:50,padding:"10px 22px",fontSize:13,fontWeight:500,cursor:"pointer"}}>추가하기</button>
+            </div>
+            :<>
+              {[{label:"진행중",items:tasks.filter(t=>!t.doneExternal)},{label:"완료",items:tasks.filter(t=>t.doneExternal)}].map(({label,items})=>items.length===0?null:(
+                <div key={label}>
+                  <div style={{padding:"14px 0 7px",fontSize:11,fontWeight:500,color:"var(--t3)",letterSpacing:".04em"}}>{label} {items.length}</div>
+                  {items.map(t=><TaskRow key={t.id} task={t} saving={savingId===t.id} onTI={()=>tog(t.id,"doneInternal")} onTE={()=>tog(t.id,"doneExternal")} onEdit={()=>openEdit(t)} onDel={()=>delTask(t.id)}/>)}
+                </div>
+              ))}
+              <div style={{height:14}}/>
+            </>
+          }
+        </div>
+      )}
+
+      {/* 일정 목록 */}
+      {tab==="event"&&(
+        <div style={{background:"var(--card)",borderRadius:16,boxShadow:"var(--sh)",padding:"0 18px"}}>
+          {events.length===0
+            ?<div style={{padding:"48px 0",textAlign:"center"}}>
+              <div style={{fontSize:36,marginBottom:10}}>📅</div>
+              <p style={{fontSize:14,color:"var(--t3)",marginBottom:14}}>등록된 일정이 없습니다</p>
+              <button onClick={()=>{setEventEditData({date:"",time:"",title:"",type:"meeting"});setEventSheet(true);}} style={{background:"var(--red)",color:"#fff",border:"none",borderRadius:50,padding:"10px 22px",fontSize:13,fontWeight:500,cursor:"pointer"}}>일정 추가</button>
+            </div>
+            :<>
+              {[{label:"예정",items:events.filter(e=>!e.done).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||"").localeCompare(b.time||""))},
+                {label:"완료",items:events.filter(e=>e.done).sort((a,b)=>a.date.localeCompare(b.date))}
+              ].map(({label,items})=>items.length===0?null:(
+                <div key={label}>
+                  <div style={{padding:"14px 0 7px",fontSize:11,fontWeight:500,color:"var(--t3)",letterSpacing:".04em"}}>{label} {items.length}</div>
+                  {items.map((e,i)=>{
+                    const info=EVENT_TYPES[e.type]||{label:e.type,color:"#999",bg:"var(--bg)"};
+                    return(
+                      <div key={e.id} style={{borderBottom:"1px solid var(--line)",padding:"12px 0",display:"flex",alignItems:"center",gap:11,opacity:e.done?.5:1}}>
+                        <input type="checkbox" checked={e.done} onChange={()=>togEvent(e.id)}/>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:3}}>
+                            <span style={{fontSize:14,fontWeight:500,textDecoration:e.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</span>
+                          </div>
+                          <div style={{display:"flex",alignItems:"center",gap:7}}>
+                            <span style={{fontSize:11,fontWeight:500,color:info.color,background:info.bg,padding:"1px 7px",borderRadius:20}}>{info.label}</span>
+                            <span style={{fontSize:11,color:"var(--t3)"}}>{fmt(e.date)}{e.time?" "+e.time:""}</span>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",gap:5,flexShrink:0}}>
+                          {e.url&&<a href={e.url} target="_blank" rel="noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"5px 10px",background:"var(--bg)",borderRadius:7,fontSize:12,border:"1px solid var(--line)"}}>🔗</a>}
+                          <button onClick={()=>openEditEvent(e)} style={{padding:"5px 10px",border:"1px solid var(--line)",borderRadius:7,background:"var(--bg)",color:"var(--t2)",fontSize:12,cursor:"pointer"}}>수정</button>
+                          <button onClick={()=>delEvent(e.id)} style={{padding:"5px 10px",border:"none",borderRadius:7,background:"rgba(255,59,48,.09)",color:"var(--danger)",fontSize:12,fontWeight:500,cursor:"pointer"}}>삭제</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+              <div style={{height:14}}/>
+            </>
+          }
+        </div>
+      )}
+
+      {/* 휴가 목록 */}
+      {tab==="vac"&&(
+        <div>
+          {vacList.length===0?(
+            <div style={{background:"var(--card)",borderRadius:16,boxShadow:"var(--sh)",padding:"48px 0",textAlign:"center"}}>
+              <div style={{fontSize:36,marginBottom:10}}>☀</div>
+              <p style={{fontSize:14,color:"var(--t3)",marginBottom:14}}>등록된 휴가가 없습니다</p>
+              <button onClick={()=>setVacForm(true)} style={{background:"var(--red)",color:"#fff",border:"none",borderRadius:50,padding:"10px 22px",fontSize:13,fontWeight:500,cursor:"pointer"}}>휴가 추가</button>
+            </div>
+          ):vacList.map(({type,info,vacs})=>(
+            <div key={type} style={{background:"var(--card)",borderRadius:16,boxShadow:"var(--sh)",padding:"0 18px",marginBottom:12}}>
+              <div style={{padding:"14px 0 8px",display:"flex",alignItems:"center",gap:7,borderBottom:"1px solid var(--line)"}}>
+                <span style={{width:8,height:8,borderRadius:"50%",background:info.colorHex,display:"inline-block"}}/>
+                <span style={{fontSize:13,fontWeight:500}}>{info.label}</span>
+                <span style={{fontSize:11,color:"var(--t3)",marginLeft:4}}>{vacs.length}일</span>
+              </div>
+              {vacs.map(v=><VacRow key={v.id} vac={v} onSave={updateVac} onDel={()=>delVac(v.id)}/>)}
+              <div style={{height:6}}/>
+            </div>
+          ))}
+        </div>
+      )}
+
+
+
+      {/* Vacation sheet */}
+      <Sheet show={vacForm} onClose={()=>setVacForm(false)} title="☀️ 휴가 추가">
+        <VacForm initial={{start:"",end:"",type:"",duration:"종일"}} onSave={saveVac} onCancel={()=>setVacForm(false)}/>
+      </Sheet>
+
+      {/* Event form sheet */}
+      <Sheet show={eventSheet} onClose={()=>{setEventSheet(false);setEventEditData(null);}} title={eventEditData?.id?"일정 수정":"일정 추가"}>
+        {eventEditData&&<EventForm initial={eventEditData} onSave={saveEvent} onCancel={()=>{setEventSheet(false);setEventEditData(null);}}/>}
+      </Sheet>
+
+      {/* Task form sheet */}
+      <Sheet show={taskSheet} onClose={()=>{setTaskSheet(false);setEditId(null);setErr("");setForm(f=>({...f,isUrgent:false}));}} title={editId?"업무 수정":form.isUrgent?"⚡ 급건 추가":"새 업무 추가"}>
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {[["name","담당자 이름","홍길동","text"],["content","업무 내용","메인 페이지 배너 수정","text"],["url","업무 URL (선택)","https://...","url"],...(form.isUrgent?[]:[["deadline","마감일 (전체)","","date"]])].map(([k,label,ph,type])=>(
+            <div key={k}>
+              <label style={{fontSize:11,color:"var(--t3)",display:"block",marginBottom:4}}>{label}</label>
+              <input type={type} value={form[k]} placeholder={ph} onChange={sf(k)}/>
+            </div>
+          ))}
+          {form.isUrgent&&(
+            <div style={{display:"flex",alignItems:"center",gap:9,background:"rgba(0,0,0,.05)",borderRadius:10,padding:"11px 13px"}}>
+              <span style={{fontSize:13}}>⚡</span>
+              <p style={{fontSize:12,color:"var(--t2)"}}>오늘 당일 완료 업무 — 마감일이 오늘로 자동 설정돼요</p>
+            </div>
+          )}
+          {!form.isUrgent&&form.deadline&&(
+            <div style={{display:"flex",alignItems:"center",gap:9,background:"rgba(52,199,89,.09)",borderRadius:10,padding:"11px 13px"}}>
+              <span style={{width:6,height:6,borderRadius:"50%",background:"var(--green)",display:"inline-block",flexShrink:0}}/>
+              <div>
+                <p style={{fontSize:11,color:"var(--t2)",marginBottom:2}}>내부 마감일 (영업일 기준 전날)</p>
+                <p style={{fontSize:13,fontWeight:600,color:"var(--green)"}}>{fmtLong(prevBiz(form.deadline))}</p>
+              </div>
+            </div>
+          )}
+          {err&&<p style={{fontSize:12,color:"var(--danger)",background:"rgba(255,59,48,.08)",borderRadius:9,padding:"9px 13px"}}>{err}</p>}
+          <button onClick={saveTask} style={{width:"100%",padding:"14px",border:"none",borderRadius:12,background:"var(--red)",color:"#fff",fontSize:15,fontWeight:600,marginTop:4,boxShadow:"0 2px 10px rgba(221,30,37,.28)",cursor:"pointer"}}>
+            {editId?"수정 완료":"추가하기"}
+          </button>
+        </div>
+      </Sheet>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(<App/>);
+</script>
+</body>
+</html>
