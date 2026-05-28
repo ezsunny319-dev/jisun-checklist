@@ -653,7 +653,7 @@ function App(){
 
   const sf=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
   const openAdd=()=>{setForm({name:"",content:"",url:"",deadline:"",isUrgent:false});setEditId(null);setTaskSheet(true);setErr("");};
-  const openEdit=t=>{setForm({name:t.name,content:t.content,url:t.url||"",deadline:t.deadline,isUrgent:false});setEditId(t.id);setTaskSheet(true);setErr("");};
+  const openEdit=t=>{setForm({name:t.name,content:t.content,url:t.url||"",deadline:t.deadline,isUrgent:!!t.urgent});setEditId(t.id);setTaskSheet(true);setErr("");};
 
   const saveTask=async()=>{
     if(!form.name.trim()||!form.content.trim()||!form.deadline){setErr("이름, 업무 내용, 마감일은 필수예요");return;}
