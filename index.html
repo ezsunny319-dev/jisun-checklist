@@ -86,10 +86,10 @@ const EVENT_TYPES={
 
 /* ─── DB tasks ─── */
 async function dbLoad(){
-  if(!sb)return JSON.parse(localStorage.getItem("jisun_v3")||"[]");
+  if(!sb)return JSON.parse(localStorage.getItem("jisun_v3")||"[]").map(t=>({...t,urgent:t.urgent||(t.internalDeadline===t.deadline)}));
   const{data,error}=await sb.from("tasks").select("*").order("created_at");
   if(error)throw error;
-  return data.map(r=>({id:r.id,name:r.name,content:r.content,url:r.url||"",deadline:r.deadline,internalDeadline:r.internal_deadline,doneInternal:r.done_internal,doneExternal:r.done_external}));
+  return data.map(r=>({id:r.id,name:r.name,content:r.content,url:r.url||"",deadline:r.deadline,internalDeadline:r.internal_deadline,doneInternal:r.done_internal,doneExternal:r.done_external,urgent:r.internal_deadline===r.deadline}));
 }
 async function dbInsert(t){if(!sb)return;const{error}=await sb.from("tasks").insert({id:t.id,name:t.name,content:t.content,url:t.url||null,deadline:t.deadline,internal_deadline:t.internalDeadline,done_internal:t.doneInternal,done_external:t.doneExternal});if(error)throw error;}
 async function dbUpdate(t){if(!sb)return;const{error}=await sb.from("tasks").update({name:t.name,content:t.content,url:t.url||null,deadline:t.deadline,internal_deadline:t.internalDeadline,done_internal:t.doneInternal,done_external:t.doneExternal}).eq("id",t.id);if(error)throw error;}
