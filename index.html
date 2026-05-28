@@ -445,12 +445,12 @@ function RightPanel({selDay,tasks,vacations,events,todayStr,onDelTask,onEditTask
         <button onClick={()=>{
           const d=new Date(selDay+"T00:00:00");d.setDate(d.getDate()-1);
           onDayNav(toStr(d));
-        }} style={{width:28,height:28,borderRadius:50,border:"none",background:"var(--bg)",color:"var(--t2)",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}>‹</button>
-        <span style={{fontSize:14,fontWeight:600}}>{fmtShort(selDay)}</span>
+        }} style={{width:28,height:28,borderRadius:50,border:"none",background:"var(--bg)",color:"var(--t2)",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0,visibility:selDay?"visible":"hidden"}}>‹</button>
+        <span style={{fontSize:14,fontWeight:600}}>{selDay?fmtShort(selDay):""}</span>
         <button onClick={()=>{
           const d=new Date(selDay+"T00:00:00");d.setDate(d.getDate()+1);
           onDayNav(toStr(d));
-        }} style={{width:28,height:28,borderRadius:50,border:"none",background:"var(--bg)",color:"var(--t2)",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}>›</button>
+        }} style={{width:28,height:28,borderRadius:50,border:"none",background:"var(--bg)",color:"var(--t2)",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0,visibility:selDay?"visible":"hidden"}}>›</button>
       </div>
       <div style={{flex:1,padding:"12px 14px",overflowY:"auto",minHeight:0}}>
         {selVacs.length>0&&(
