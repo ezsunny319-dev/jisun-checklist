@@ -660,7 +660,7 @@ function App(){
     const internal=form.isUrgent?form.deadline:prevBiz(form.deadline);
     try{
       if(editId){
-        const updated={id:editId,...form,internalDeadline:internal,doneInternal:tasks.find(t=>t.id===editId)?.doneInternal||false,doneExternal:tasks.find(t=>t.id===editId)?.doneExternal||false};
+        const updated={id:editId,...form,internalDeadline:internal,urgent:!!form.isUrgent,doneInternal:tasks.find(t=>t.id===editId)?.doneInternal||false,doneExternal:tasks.find(t=>t.id===editId)?.doneExternal||false};
         setSavingId(editId);await dbUpdate(updated);setTasks(p=>p.map(t=>t.id===editId?updated:t));
       }else{
         const t={id:Date.now().toString(),...form,internalDeadline:internal,doneInternal:false,doneExternal:false,urgent:!!form.isUrgent};
